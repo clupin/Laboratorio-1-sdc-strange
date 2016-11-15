@@ -139,7 +139,7 @@ class Strange {
 				//ofuscação
 				ofus = this.ofuscacion(key[key_ind],b);
 				baos.write(ofus);
-				ey_ind+=ofus.length();
+				key_ind+=ofus.length();
 				break;
 			}
 		}
@@ -187,7 +187,7 @@ class Strange {
 				int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes[0],b)^255:this.byte_xor("l".getBytes[0],b);
 				dec = (byte) i_dec;
 				baos.write(new byte[]{dec}, 0, 1);
-				ey_ind+=relleno+1;//se salta el relleno
+				key_ind+=relleno+1;//se salta el relleno
 				break;
 			}
 		}
