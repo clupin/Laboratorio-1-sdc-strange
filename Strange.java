@@ -1,4 +1,5 @@
 import java.nio.charset.Charset;
+import java.io.ByteArrayOutputStream;
 
 class Strange {
 	private static Strange instance = null; 
@@ -107,8 +108,91 @@ class Strange {
 		int enc_byte = tp_int^key_int;
 		return (byte) enc_byte;
 	}
-	public encode(byte[] key, byte[] texto_plano){
-		int tp_ind = 0, key_ind = 0;
+	public byte[] encode(byte[] key, byte[] texto_plano){
+		int key_ind = 0;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte enc =0;
+		byte[] ofus=null;
+		for (byte b : texto_plano) {
+			//TODO: manejar relleno cuando se acabe la clave
+			//en especial en la ofuscação
+			switch(key[key_ind]&3){
+				case 0:
+				//veloz zorro
+				enc = this.elVelozZorroCafe(key[key_ind],b);
+				baos.write(new byte[]{enc}, 0, 1);
+				key_ind++;
+				break;
+				case 1:
+				//ANRI
+				enc = this.avecesNoRotaIzq(key[key_ind],b);
+				baos.write(new byte[]{enc}, 0, 1);
+				key_ind++;
+				break;
+				case 2:
+				//xor
+				enc = this.byte_xor(key[key_ind],b);
+				baos.write(new byte[]{enc}, 0, 1);
+				key_ind++;
+				break;
+				case 3:
+				//ofuscação
+				ofus = this.ofuscacion(key[key_ind],b);
+				baos.write(ofus);
+				ey_ind+=ofus.length();
+				break;
+			}
+		}
+		byte[] encriptado = baos.toByteArray();
+		baos.close();
+		return encriptado;
 	}
-	
+	public byte[] decode(byte[] key, byte[] texto_encriptado){
+		int  key_ind = 0;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte dec =0;
+		byte[] ofus=null;
+		//TODO: crear relleno desde texto encriptado
+
+		for (byte b : texto_decriptado) {
+			switch(key[key_ind]&3){
+				case 0:
+				//veloz zorro
+				dec = this.desElVelozZorroCafe(key[key_ind],b);
+				baos.write(new byte[]{dec}, 0, 1);
+				key_ind++;
+				break;
+				case 1:
+				//ANRI
+				dec = this.desAvecesNoRotaIzq(key[key_ind],b);
+				baos.write(new byte[]{dec}, 0, 1);
+				key_ind++;
+				break;
+				case 2:
+				//xor
+				dec = this.byte_xor(key[key_ind],b);
+				baos.write(new byte[]{dec}, 0, 1);
+				key_ind++;
+				break;
+				case 3:
+				//ofuscação
+				int key_int = key[key_ind]&127;
+				if((key[key_ind]&128)!=0)
+					key_int = key_int | 128;
+				int relleno = (key_int>>2)&7;
+				int paridad = 0;
+				for(int i=0;i<3;i++)
+					paridad += (key_int>>(5+i))&1;
+
+				int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes[0],b)^255:this.byte_xor("l".getBytes[0],b);
+				dec = (byte) i_dec;
+				baos.write(new byte[]{dec}, 0, 1);
+				ey_ind+=relleno+1;//se salta el relleno
+				break;
+			}
+		}
+		byte[] desencriptado = baos.toByteArray();
+		baos.close();
+		return desencriptado;
+	}
 }
