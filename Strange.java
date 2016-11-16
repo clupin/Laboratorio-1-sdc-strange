@@ -9,7 +9,7 @@ public class Strange {
 			instance = new Strange();
 		return instance;
 	}
-	private byte elVelozZorroCafe(byte key,byte tp_byte){
+	public byte elVelozZorroCafe(byte key,byte tp_byte){
 		//para evitar problemas con negativo
 		int tp_int = tp_byte&127;
 		if((tp_byte&128)!=0)
@@ -18,11 +18,12 @@ public class Strange {
 		if((key&128)!=0)
 			key_int = key_int | 128;
 		int[] traslacion = {19,7,4,16,20,8,2,10,1,17,14,22,13,5,23,9,12,15,18,21,11,0,25,24,3,6};
+
 		int enc_mod = traslacion[((tp_int+(key_int>>2))%26)];
 		int enc = (tp_int/26)*26+enc_mod;
 		return (byte)enc ;
 	}
-	private byte desElVelozZorroCafe(byte key,byte tp_byte){
+	public byte desElVelozZorroCafe(byte key,byte tp_byte){
 		//para evitar problemas con negativo
 		int tp_int = tp_byte&127;
 		if((tp_byte&128)!=0)
@@ -32,17 +33,19 @@ public class Strange {
 			key_int = key_int | 128;
 		int[] traslacion   = {19,7,4,16,20,8,2,10,1,17,14,22,13,5,23,9,12,15,18,21,11,0,25,24,3,6};
 		int mod_wos = tp_int%26;
+
 		int mod_shift = (key_int>>2)%26;
 		int i=0;
 		for (i=0;i<26;i++)
 			if(traslacion[i]==mod_wos)
 				break;
-		int trans_index = (mod_shift>i)?26-i+mod_shift:i-mod_shift;
+		int trans_index = (mod_shift>i)?26-mod_shift+i:i-mod_shift;
 		int enc_mod = trans_index;
 		int enc = (tp_int/26)*26+enc_mod;
 		return (byte)enc ;
 	}
 	private static byte[] ofuscacion(byte key,byte tp_byte){
+
 		int tp_int = tp_byte&127;
 		if((tp_byte&128)!=0)
 			tp_int = tp_int | 128;
@@ -57,18 +60,22 @@ public class Strange {
 		byte[] retorno = new byte[relleno+1];
 		byte[] texto = "lorem ip".getBytes();
 		byte ant = 0;
-		for(int i=0;i<=relleno;i++){
 
+		for(int i=0;i<=relleno;i++){
 			retorno[i] = (paridad%2==0 && i%2==0)? (byte)(tp_int^ant^texto[i]^255):(byte)(tp_int^ant^texto[i]);
 			ant = retorno[i];
 		}
 		return retorno;
 	}
+	
 	private byte avecesNoRotaIzq(byte key,byte tp_byte){
 		//problemas con la conversion automatica si el binario es negativo
 		int tp_int = tp_byte&127;
 		if((tp_byte&128)!=0)
 			tp_int = tp_int | 128;
+		int key_int = key&127;
+		if((key&128)!=0)
+			key_int = key_int | 128;
 
 		int shifting = (key>>2)&7;
 		int paridad = 0;
@@ -81,6 +88,8 @@ public class Strange {
 		int enc_byte = (left_side|right_side)&255;
 		if(negar)
 			enc_byte = (~enc_byte)&255;
+		//char	key	shif	paridad
+		//System.out.println(String.format("%d\t%d\t%d\t%s",tp_int,key_int,shifting,negar));
 		return (byte) enc_byte;
 	}
 	private byte desAvecesNoRotaIzq(byte key,byte te_byte){
@@ -118,16 +127,28 @@ public class Strange {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte enc =0;
 		byte[] ofus=null;
+		int key_cont=0;
 		byte[] clave = key;
 		try{
 			for (byte b : texto_plano) {
-				//TODO: manejar relleno cuando se acabe la clave
 				//en especial en la ofuscação
-				
-				switch(clave[key_ind]&3){
+				int key_int = clave[key_ind]&127;
+				if((clave[key_ind]&128)!=0)
+					key_int = key_int | 128;
+				key_cont++;
+				if(key_cont==5){
+					System.out.println(key_int%4+" "+clave[key_ind]);
+					System.out.println("");
+				}
+
+				switch(key_int%4){
 					case 0:
 					//veloz zorro
 					enc = this.elVelozZorroCafe(clave[key_ind],b);
+					if(key_cont==5){
+						printBinary(enc);
+						System.out.println("");
+					}
 					baos.write(new byte[]{enc}, 0, 1);
 					key_ind++;
 					break;
@@ -154,7 +175,7 @@ public class Strange {
 
 				if(key_ind>=clave.length){
 					byte[] baos_byte = baos.toByteArray();
-					clave = this.relleno(enc,key,clave);
+					clave = this.relleno(baos_byte[clave.length-1],key,clave);
 				}
 			}
 			byte[] encriptado = baos.toByteArray();
@@ -170,6 +191,10 @@ public class Strange {
 
 	public byte[] relleno(byte key, byte[] clave, byte[] clave_rellenada){
 		try{
+			int key_int = key&127;
+			if((key&128)!=0)
+				key_int = key_int | 128;
+
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			baos.write(clave_rellenada);
 			for(byte b: clave){
@@ -190,6 +215,7 @@ public class Strange {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte dec =0;
 		byte[] ofus=null;
+		int key_cont=0;
 		//TODO: crear relleno desde texto encriptado
 		int ind=0;
 		byte[] clave = key;
@@ -197,7 +223,6 @@ public class Strange {
 			ind=(key.length)*(i+1)-1;
 			clave = this.relleno(texto_encriptado[ind], key, clave);
 		}
-		key = clave;
 		int saltar=0;
 		try{
 			for (byte b : texto_encriptado) {
@@ -205,37 +230,45 @@ public class Strange {
 					saltar--;
 					continue;
 				}
-				switch(key[key_ind]&3){
+				int key__int = clave[key_ind]&127;
+				key_cont++;
+				if(key_cont==5){
+					System.out.println(key__int%4+" "+b);
+					printBinary(b);
+					System.out.println("");
+				}
+				if((clave[key_ind]&128)!=0)
+					key__int = key__int | 128;
+				switch(key__int%4){
 					case 0:
 					//veloz zorro
-					dec = this.desElVelozZorroCafe(key[key_ind],b);
+
+					dec = this.desElVelozZorroCafe(clave[key_ind],b);
 					baos.write(new byte[]{dec}, 0, 1);
+					if(key_cont==5){
+						System.out.println("");
+					}
 					key_ind++;
 					break;
 					case 1:
 					//ANRI
-					dec = this.desAvecesNoRotaIzq(key[key_ind],b);
+					dec = this.desAvecesNoRotaIzq(clave[key_ind],b);
 					baos.write(new byte[]{dec}, 0, 1);
 					key_ind++;
 					break;
 					case 2:
 					//xor
-					dec = this.byte_xor(key[key_ind],b);
+					dec = this.byte_xor(clave[key_ind],b);
 					baos.write(new byte[]{dec}, 0, 1);
 					key_ind++;
 					break;
 					case 3:
 					//ofuscação
-					int key_int = key[key_ind]&127;
-					if((key[key_ind]&128)!=0)
+					int key_int = clave[key_ind]&127;
+					if((clave[key_ind]&128)!=0)
 						key_int = key_int | 128;
 					int relleno = (key_int>>2)&7;
-					int paridad = 0;
-					for(int i=0;i<3;i++)
-						paridad += (key_int>>(5+i))&1;
-					int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes()[0],b)^255:this.byte_xor("l".getBytes()[0],b);
-					dec = (byte) i_dec;
-					baos.write(new byte[]{dec}, 0, 1);
+					baos.write(new byte[]{this.ofuscacion(clave[key_ind],b)[0]}, 0, 1);
 					saltar = relleno;
 					key_ind+=relleno+1;//se salta el relleno
 					break;

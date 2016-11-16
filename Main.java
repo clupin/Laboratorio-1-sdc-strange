@@ -6,13 +6,13 @@ import java.nio.charset.Charset;
 public class Main {
     public static void main(String[] args){
         Strange strange = Strange.getInstance();
-        String clave = "clave", texto_plano = "holas";
+        String clave = "mistica", texto_plano = "un texto interesante de encriptar ya que es más largo y tiene caractéres utf-8";
         /** Encriptar **/
         byte[] enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
 		String s_enc = new String(enc_array, Charset.forName("UTF-8"));
         
 		System.out.println("\nTexto Plano: "+texto_plano);
-        for(byte b : texto_plano.getBytes())
+        /*for(byte b : texto_plano.getBytes())
 			printBinary(b);
         System.out.println("\nTexto encriptado: "+s_enc);
         for(byte b : enc_array)
@@ -26,10 +26,12 @@ public class Main {
 
 
 
-        System.out.println("Texto desencriptado: "+s_dec);
-        for(byte b : dec_array)
-			printBinary(b);
-        System.out.println("\nTexto desencriptado: "+Arrays.toString(dec_array));
+        System.out.println("Texto desen: "+s_dec);
+
+       // for(byte b : dec_array)
+		//	printBinary(b);
+        //System.out.println("\nTexto desencriptado: "+Arrays.toString(dec_array));
+        
 
     }
     public static void printBinary(byte b){
