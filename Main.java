@@ -21,7 +21,7 @@ public class Main {
 
 
 		/** Desencriptar **/
-		byte[] dec_array = strange.decode(clave.getBytes(), s_enc.getBytes());
+		byte[] dec_array = strange.decode(clave.getBytes(),enc_array);
 		String s_dec = new String(dec_array, Charset.forName("UTF-8"));
 
 

@@ -56,8 +56,12 @@ public class Strange {
 			paridad += (key>>(5+i))&1;
 		byte[] retorno = new byte[relleno+1];
 		byte[] texto = "lorem ip".getBytes();
-		for(int i=0;i<=relleno;i++)
-			retorno[i] = (paridad%2==0 && i%2==0)? (byte)(tp_int^texto[i]^255):(byte)(tp_int^texto[i]);
+		byte ant = 0;
+		for(int i=0;i<=relleno;i++){
+
+			retorno[i] = (paridad%2==0 && i%2==0)? (byte)(tp_int^ant^texto[i]^255):(byte)(tp_int^ant^texto[i]);
+			ant = retorno[i];
+		}
 		return retorno;
 	}
 	private byte avecesNoRotaIzq(byte key,byte tp_byte){
@@ -142,32 +146,20 @@ public class Strange {
 					case 3:
 					//ofuscacion
 					ofus = this.ofuscacion(clave[key_ind],b);
-					System.out.println("\n->Aplicando Ofuscacion: ");
-					for(byte k : ofus){
-						printBinary(k);
-					}
-					
 					baos.write(ofus);
-
-					if(key_ind+ofus.length>=clave.length){
-						int ofus_ind = ofus.length - baos.size() +clave.length - 1;
-						clave = this.relleno(ofus[ofus_ind],key,clave);
-					}
 					key_ind+=ofus.length;
 					break;
 				}
 
 
-				if(key_ind==clave.length){
+				if(key_ind>=clave.length){
+					byte[] baos_byte = baos.toByteArray();
 					clave = this.relleno(enc,key,clave);
 				}
 			}
 			byte[] encriptado = baos.toByteArray();
 			baos.close();
-			System.out.println("\nClave Encode: "+new String(clave, Charset.forName("UTF-8")));
-			for(byte b : clave){
-				printBinary(b);
-			}
+			
 			return encriptado;
 
 		}catch(Exception e){
@@ -199,20 +191,20 @@ public class Strange {
 		byte dec =0;
 		byte[] ofus=null;
 		//TODO: crear relleno desde texto encriptado
-
+		int ind=0;
 		byte[] clave = key;
 		for(int i= 0; i<(texto_encriptado.length/key.length) + ((texto_encriptado.length%key.length == 0)?0:1) - 1;i++){
-			clave = this.relleno(texto_encriptado[(key.length)*(i+1)-1], key, clave);
+			ind=(key.length)*(i+1)-1;
+			clave = this.relleno(texto_encriptado[ind], key, clave);
 		}
 		key = clave;
-		//Forzando clave con "clave" y "holas"
-		//key = "clave[h\\pe".getBytes();
-
-		System.out.println("\nClave Decode: "+new String(key, Charset.forName("UTF-8")));
-
+		int saltar=0;
 		try{
 			for (byte b : texto_encriptado) {
-				
+				if(saltar>0){
+					saltar--;
+					continue;
+				}
 				switch(key[key_ind]&3){
 					case 0:
 					//veloz zorro
@@ -241,14 +233,13 @@ public class Strange {
 					int paridad = 0;
 					for(int i=0;i<3;i++)
 						paridad += (key_int>>(5+i))&1;
-
 					int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes()[0],b)^255:this.byte_xor("l".getBytes()[0],b);
 					dec = (byte) i_dec;
 					baos.write(new byte[]{dec}, 0, 1);
+					saltar = relleno;
 					key_ind+=relleno+1;//se salta el relleno
 					break;
 				}
-				System.out.println("Reconstruyendo Texto: "+new String(baos.toByteArray(), Charset.forName("UTF-8")));
 			}
 			byte[] desencriptado = baos.toByteArray();
 			baos.close();
