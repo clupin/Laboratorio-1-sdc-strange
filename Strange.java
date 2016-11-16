@@ -1,7 +1,8 @@
+package StrangeLab;
 import java.nio.charset.Charset;
 import java.io.ByteArrayOutputStream;
 
-class Strange {
+public class Strange {
 	private static Strange instance = null; 
 	public static Strange getInstance(){
 		if(instance==null)
@@ -113,40 +114,84 @@ class Strange {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte enc =0;
 		byte[] ofus=null;
-		for (byte b : texto_plano) {
-			//TODO: manejar relleno cuando se acabe la clave
-			//en especial en la ofuscação
-			switch(key[key_ind]&3){
-				case 0:
-				//veloz zorro
-				enc = this.elVelozZorroCafe(key[key_ind],b);
-				baos.write(new byte[]{enc}, 0, 1);
-				key_ind++;
-				break;
-				case 1:
-				//ANRI
-				enc = this.avecesNoRotaIzq(key[key_ind],b);
-				baos.write(new byte[]{enc}, 0, 1);
-				key_ind++;
-				break;
-				case 2:
-				//xor
-				enc = this.byte_xor(key[key_ind],b);
-				baos.write(new byte[]{enc}, 0, 1);
-				key_ind++;
-				break;
-				case 3:
-				//ofuscação
-				ofus = this.ofuscacion(key[key_ind],b);
-				baos.write(ofus);
-				key_ind+=ofus.length();
-				break;
+		byte[] clave = key;
+		try{
+			for (byte b : texto_plano) {
+				//TODO: manejar relleno cuando se acabe la clave
+				//en especial en la ofuscação
+				
+				switch(clave[key_ind]&3){
+					case 0:
+					//veloz zorro
+					enc = this.elVelozZorroCafe(clave[key_ind],b);
+					baos.write(new byte[]{enc}, 0, 1);
+					key_ind++;
+					break;
+					case 1:
+					//ANRI
+					enc = this.avecesNoRotaIzq(clave[key_ind],b);
+					baos.write(new byte[]{enc}, 0, 1);
+					key_ind++;
+					break;
+					case 2:
+					//xor
+					enc = this.byte_xor(clave[key_ind],b);
+					baos.write(new byte[]{enc}, 0, 1);
+					key_ind++;
+					break;
+					case 3:
+					//ofuscacion
+					ofus = this.ofuscacion(clave[key_ind],b);
+					System.out.println("\n->Aplicando Ofuscacion: ");
+					for(byte k : ofus){
+						printBinary(k);
+					}
+					baos.write(ofus);
+
+					if(key_ind+ofus.length>=clave.length){
+						int ofus_ind = ofus.length - baos.size() +clave.length - 1;
+						clave = this.relleno(ofus[ofus_ind],key,clave);
+					}
+					key_ind+=ofus.length;
+					break;
+				}
+
+
+				if(key_ind==clave.length){
+					clave = this.relleno(enc,key,clave);
+				}
 			}
+			byte[] encriptado = baos.toByteArray();
+			baos.close();
+			System.out.println("Clave Encode: "+new String(clave, Charset.forName("UTF-8")));
+			for(byte b : clave){
+				printBinary(b);
+			}
+			return encriptado;
+
+		}catch(Exception e){
+			e.printStackTrace();
+			return null;
 		}
-		byte[] encriptado = baos.toByteArray();
-		baos.close();
-		return encriptado;
 	}
+
+	public byte[] relleno(byte key, byte[] clave, byte[] clave_rellenada){
+		try{
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			baos.write(clave_rellenada);
+			for(byte b: clave){
+				baos.write(new byte[]{this.elVelozZorroCafe(key,b)}, 0, 1);
+			}
+
+			byte[] encriptado = baos.toByteArray();
+			baos.close();
+			return encriptado;
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public byte[] decode(byte[] key, byte[] texto_encriptado){
 		int  key_ind = 0;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -154,45 +199,69 @@ class Strange {
 		byte[] ofus=null;
 		//TODO: crear relleno desde texto encriptado
 
-		for (byte b : texto_decriptado) {
-			switch(key[key_ind]&3){
-				case 0:
-				//veloz zorro
-				dec = this.desElVelozZorroCafe(key[key_ind],b);
-				baos.write(new byte[]{dec}, 0, 1);
-				key_ind++;
-				break;
-				case 1:
-				//ANRI
-				dec = this.desAvecesNoRotaIzq(key[key_ind],b);
-				baos.write(new byte[]{dec}, 0, 1);
-				key_ind++;
-				break;
-				case 2:
-				//xor
-				dec = this.byte_xor(key[key_ind],b);
-				baos.write(new byte[]{dec}, 0, 1);
-				key_ind++;
-				break;
-				case 3:
-				//ofuscação
-				int key_int = key[key_ind]&127;
-				if((key[key_ind]&128)!=0)
-					key_int = key_int | 128;
-				int relleno = (key_int>>2)&7;
-				int paridad = 0;
-				for(int i=0;i<3;i++)
-					paridad += (key_int>>(5+i))&1;
-
-				int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes[0],b)^255:this.byte_xor("l".getBytes[0],b);
-				dec = (byte) i_dec;
-				baos.write(new byte[]{dec}, 0, 1);
-				key_ind+=relleno+1;//se salta el relleno
-				break;
-			}
+		byte[] clave = key;
+		for(int i= 0; i<(texto_encriptado.length/key.length) + ((texto_encriptado.length%key.length == 0)?0:1) - 1;i++){
+			clave = this.relleno(texto_encriptado[(key.length-1)*(i+1)], key, clave);
 		}
-		byte[] desencriptado = baos.toByteArray();
-		baos.close();
-		return desencriptado;
+		key = clave;
+		//key = "clave[h\\pe".getBytes();
+
+		System.out.println("Clave Decode: "+new String(key, Charset.forName("UTF-8")));
+
+		try{
+			for (byte b : texto_encriptado) {
+				
+				switch(key[key_ind]&3){
+					case 0:
+					//veloz zorro
+					dec = this.desElVelozZorroCafe(key[key_ind],b);
+					baos.write(new byte[]{dec}, 0, 1);
+					key_ind++;
+					break;
+					case 1:
+					//ANRI
+					dec = this.desAvecesNoRotaIzq(key[key_ind],b);
+					baos.write(new byte[]{dec}, 0, 1);
+					key_ind++;
+					break;
+					case 2:
+					//xor
+					dec = this.byte_xor(key[key_ind],b);
+					baos.write(new byte[]{dec}, 0, 1);
+					key_ind++;
+					break;
+					case 3:
+					//ofuscação
+					int key_int = key[key_ind]&127;
+					if((key[key_ind]&128)!=0)
+						key_int = key_int | 128;
+					int relleno = (key_int>>2)&7;
+					int paridad = 0;
+					for(int i=0;i<3;i++)
+						paridad += (key_int>>(5+i))&1;
+
+					int i_dec = (paridad%2==0)?this.byte_xor("l".getBytes()[0],b)^255:this.byte_xor("l".getBytes()[0],b);
+					dec = (byte) i_dec;
+					baos.write(new byte[]{dec}, 0, 1);
+					key_ind+=relleno+1;//se salta el relleno
+					break;
+				}
+				System.out.println("Reconstruyendo Texto: "+new String(baos.toByteArray(), Charset.forName("UTF-8")));
+			}
+			byte[] desencriptado = baos.toByteArray();
+			baos.close();
+			return desencriptado;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+    public static void printBinary(byte b){
+		int i_b = b&127;
+		if((b&128)!=0)
+			i_b = i_b | 128;
+		System.out.print(String.format("%08d ", Integer.parseInt(Integer.toBinaryString(i_b))));
 	}
 }
