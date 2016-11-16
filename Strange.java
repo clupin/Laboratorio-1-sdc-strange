@@ -90,7 +90,7 @@ public class Strange {
 		if(negar)
 			enc_byte = (~enc_byte)&255;
 		//char	key	shif	paridad
-		//System.out.println(String.format("%d\t%d\t%d\t%s",tp_int,key_int,shifting,negar));
+
 		return (byte) enc_byte;
 	}
 	private byte desAvecesNoRotaIzq(byte key,byte te_byte){
@@ -128,7 +128,6 @@ public class Strange {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte enc =0;
 		byte[] ofus=null;
-		int key_cont=0;
 		byte[] clave = key;
 		try{
 			for (byte b : texto_plano) {
@@ -136,20 +135,10 @@ public class Strange {
 				int key_int = clave[key_ind]&127;
 				if((clave[key_ind]&128)!=0)
 					key_int = key_int | 128;
-				key_cont++;
-				if(key_cont==5){
-					System.out.println(key_int%4+" "+clave[key_ind]);
-					System.out.println("");
-				}
-
 				switch(key_int%4){
 					case 0:
 					//veloz zorro
 					enc = this.elVelozZorroCafe(clave[key_ind],b);
-					if(key_cont==5){
-						printBinary(enc);
-						System.out.println("");
-					}
 					baos.write(new byte[]{enc}, 0, 1);
 					key_ind++;
 					break;
@@ -218,8 +207,6 @@ public class Strange {
 		texto_encriptado = Base64.getDecoder().decode(texto_encriptado);
 		byte dec =0;
 		byte[] ofus=null;
-		int key_cont=0;
-		//TODO: crear relleno desde texto encriptado
 		int ind=0;
 		byte[] clave = key;
 		for(int i= 0; i<(texto_encriptado.length/key.length) + ((texto_encriptado.length%key.length == 0)?0:1) - 1;i++){
@@ -234,12 +221,6 @@ public class Strange {
 					continue;
 				}
 				int key__int = clave[key_ind]&127;
-				key_cont++;
-				if(key_cont==5){
-					System.out.println(key__int%4+" "+b);
-					printBinary(b);
-					System.out.println("");
-				}
 				if((clave[key_ind]&128)!=0)
 					key__int = key__int | 128;
 				switch(key__int%4){
@@ -248,9 +229,6 @@ public class Strange {
 
 					dec = this.desElVelozZorroCafe(clave[key_ind],b);
 					baos.write(new byte[]{dec}, 0, 1);
-					if(key_cont==5){
-						System.out.println("");
-					}
 					key_ind++;
 					break;
 					case 1:

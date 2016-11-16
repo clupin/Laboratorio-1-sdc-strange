@@ -8,6 +8,9 @@ public class Main {
         Strange strange = Strange.getInstance();
         String clave = "mistica", texto_plano = "un texto interesante de encriptar ya que es más largo y tiene caractéres utf-8";
         /** Encriptar **/
+        System.out.println("key: "+clave);
+        System.out.println("Texto plano: "+texto_plano);
+
         byte[] enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
 		String s_enc = new String(enc_array, Charset.forName("UTF-8"));
         
