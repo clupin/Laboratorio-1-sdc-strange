@@ -20,8 +20,6 @@ public class Main {
 		byte[] dec_array = strange.decode(clave.getBytes(),s_enc.getBytes());
 		String s_dec = new String(dec_array, Charset.forName("UTF-8"));
 
-
-
         System.out.println("Texto desen: "+s_dec);
 
        // for(byte b : dec_array)
