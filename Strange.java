@@ -1,6 +1,7 @@
 package StrangeLab;
 import java.nio.charset.Charset;
 import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 
 public class Strange {
 	private static Strange instance = null; 
@@ -181,6 +182,7 @@ public class Strange {
 			byte[] encriptado = baos.toByteArray();
 			baos.close();
 			
+			encriptado = Base64.getEncoder().encode(encriptado);
 			return encriptado;
 
 		}catch(Exception e){
@@ -213,6 +215,7 @@ public class Strange {
 	public byte[] decode(byte[] key, byte[] texto_encriptado){
 		int  key_ind = 0;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		texto_encriptado = Base64.getDecoder().decode(texto_encriptado);
 		byte dec =0;
 		byte[] ofus=null;
 		int key_cont=0;

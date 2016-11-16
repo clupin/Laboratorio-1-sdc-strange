@@ -11,17 +11,10 @@ public class Main {
         byte[] enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
 		String s_enc = new String(enc_array, Charset.forName("UTF-8"));
         
-		System.out.println("\nTexto Plano: "+texto_plano);
-        /*for(byte b : texto_plano.getBytes())
-			printBinary(b);
         System.out.println("\nTexto encriptado: "+s_enc);
-        for(byte b : enc_array)
-			printBinary(b);
-        System.out.println("\nTexto encriptado: "+Arrays.toString(enc_array));
-
 
 		/** Desencriptar **/
-		byte[] dec_array = strange.decode(clave.getBytes(),enc_array);
+		byte[] dec_array = strange.decode(clave.getBytes(),s_enc.getBytes());
 		String s_dec = new String(dec_array, Charset.forName("UTF-8"));
 
 
