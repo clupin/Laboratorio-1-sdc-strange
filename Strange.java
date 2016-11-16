@@ -146,6 +146,7 @@ public class Strange {
 					for(byte k : ofus){
 						printBinary(k);
 					}
+					
 					baos.write(ofus);
 
 					if(key_ind+ofus.length>=clave.length){
@@ -163,7 +164,7 @@ public class Strange {
 			}
 			byte[] encriptado = baos.toByteArray();
 			baos.close();
-			System.out.println("Clave Encode: "+new String(clave, Charset.forName("UTF-8")));
+			System.out.println("\nClave Encode: "+new String(clave, Charset.forName("UTF-8")));
 			for(byte b : clave){
 				printBinary(b);
 			}
@@ -201,12 +202,13 @@ public class Strange {
 
 		byte[] clave = key;
 		for(int i= 0; i<(texto_encriptado.length/key.length) + ((texto_encriptado.length%key.length == 0)?0:1) - 1;i++){
-			clave = this.relleno(texto_encriptado[(key.length-1)*(i+1)], key, clave);
+			clave = this.relleno(texto_encriptado[(key.length)*(i+1)-1], key, clave);
 		}
 		key = clave;
+		//Forzando clave con "clave" y "holas"
 		//key = "clave[h\\pe".getBytes();
 
-		System.out.println("Clave Decode: "+new String(key, Charset.forName("UTF-8")));
+		System.out.println("\nClave Decode: "+new String(key, Charset.forName("UTF-8")));
 
 		try{
 			for (byte b : texto_encriptado) {
