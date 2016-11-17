@@ -163,7 +163,7 @@ public class Strange {
 				}
 
 
-				if(key_ind>=clave.length){
+				while(key_ind>=clave.length){
 					byte[] baos_byte = baos.toByteArray();
 					clave = this.relleno(baos_byte[clave.length-1],key,clave);
 				}
