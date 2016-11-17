@@ -1,4 +1,4 @@
-package StrangeLab;
+﻿package StrangeLab;
 import java.util.Arrays;
 import java.nio.charset.Charset;
 import java.io.*;
@@ -12,7 +12,6 @@ public class Main {
     String texto_plano, clave ,texto_enc,Fichero,salida,op;
     Strange strange;
     FileWriter file =null;
-    byte[] enc_array;
     PrintWriter pw= null;
     while(opcion !=0){
         System.out.println("Menu:\n1-Encriptar texto\n2-Desencriptar texto\n3-Encriptar Archivo\n4-DecriptarArchivo\n0-Salir \nEscriba el numero de la opción:\n");
@@ -26,9 +25,9 @@ public class Main {
                 clave = sc.nextLine();
                 strange = Strange.getInstance();
                 /** Encriptar **/
-                enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
-		        String s_enc = new String(enc_array, Charset.forName("UTF-8"));
-                System.out.println("\nTexto encriptado: \n"+s_enc);
+                byte[] enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
+		String s_enc = new String(enc_array, Charset.forName("UTF-8"));
+               System.out.println("\nTexto encriptado: \n"+s_enc);
                 break;
             case 2:
                 System.out.println("\nIngrese un texto a desencriptar :");
@@ -56,8 +55,8 @@ public class Main {
                     pw = new PrintWriter(file);
                     /** Encriptar **/
                         while((texto_plano = br.readLine()) != null){
-                            enc_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
-                            String txt_enc = new String(enc_array, Charset.forName("UTF-8"));
+                            byte[] txt_array = strange.encode(clave.getBytes(), texto_plano.getBytes());
+                            String txt_enc = new String(txt_array, Charset.forName("UTF-8"));
                             pw.println(txt_enc);
                         }
                     fr.close();
